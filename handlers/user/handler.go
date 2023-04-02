@@ -6,10 +6,11 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
+
 	"github.com/wilsonangara/simple-online-book-store/auth"
 	"github.com/wilsonangara/simple-online-book-store/storage/models"
 	"github.com/wilsonangara/simple-online-book-store/storage/sqlite/user"
-	"golang.org/x/crypto/bcrypt"
 )
 
 var (

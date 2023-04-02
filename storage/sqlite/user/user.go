@@ -21,7 +21,7 @@ var (
 
 //go:generate mockgen -source=user.go -destination=mock/user.go -package=mock
 type UserStorage interface {
-	// GetUserByID fetches the user in our database
+	// GetUserByID fetches the user in our storage.
 	GetUserByID(context.Context, int) (*models.User, error)
 
 	// Create adds a new user to our storage.

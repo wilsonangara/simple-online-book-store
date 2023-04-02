@@ -14,8 +14,10 @@ import (
 	"github.com/kenshaw/envcfg"
 
 	"github.com/wilsonangara/simple-online-book-store/auth"
+	"github.com/wilsonangara/simple-online-book-store/handlers/book"
 	"github.com/wilsonangara/simple-online-book-store/handlers/user"
 	"github.com/wilsonangara/simple-online-book-store/storage/sqlite"
+	book_storage "github.com/wilsonangara/simple-online-book-store/storage/sqlite/book"
 	user_storage "github.com/wilsonangara/simple-online-book-store/storage/sqlite/user"
 )
 
@@ -106,11 +108,15 @@ func setupHandlers() http.Handler {
 	}
 
 	userStorage := user_storage.NewStorage(storage.Database())
+	bookStorage := book_storage.NewStorage(storage.Database())
 
 	v1 := r.Group("/v1")
 
 	userHandler := user.NewHandler(authClient, userStorage)
 	userHandler.AddUserRoutes(v1)
+
+	bookHandler := book.NewHandler(bookStorage)
+	bookHandler.AddBookRoutes(v1)
 
 	return r
 }
