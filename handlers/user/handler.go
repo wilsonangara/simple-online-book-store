@@ -53,8 +53,8 @@ func (h *Handler) Register(c *gin.Context) {
 	r := &RegisterRequest{}
 	if err := c.BindJSON(r); err != nil {
 		log.Printf("failed to bind json: %v", err)
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"message": err.Error(),
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"message": errInternalServer,
 		})
 		return
 	}
@@ -95,7 +95,7 @@ func (h *Handler) Register(c *gin.Context) {
 		return
 	}
 
-	token, err := h.auth.GenerateToken(int(createdUser.ID))
+	token, err := h.auth.GenerateToken(createdUser.ID)
 	if err != nil {
 		log.Printf("failed to generate token: %v", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{

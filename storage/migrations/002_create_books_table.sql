@@ -10,15 +10,6 @@ CREATE TABLE IF NOT EXISTS books (
 );
 
 -- +goose StatementBegin
-CREATE TRIGGER IF NOT EXISTS set_books_updated_at
-        AFTER UPDATE ON books
-        FOR EACH ROW
-        BEGIN
-                UPDATE books
-                        SET updated_at = DATETIME('now', 'utc')
-                        WHERE id = NEW.id;
-        END;
-
 INSERT INTO books (title, author, description, price)
         VALUES  ('Atomic Habits', 'James Clear', '', '10.00'),
                 ('The Tipping Point', 'Malcolm Gladwell', 'Everything has their own tipping points', '9.80'),
@@ -26,5 +17,4 @@ INSERT INTO books (title, author, description, price)
 -- +goose StatementEnd
 
 -- +goose Down
-DROP TRIGGER IF EXISTS set_books_updated_at;
 DROP TABLE IF EXISTS books;

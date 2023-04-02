@@ -51,7 +51,7 @@ func (mr *MockUserStorageMockRecorder) Create(arg0, arg1 interface{}) *gomock.Ca
 }
 
 // GetUserByID mocks base method.
-func (m *MockUserStorage) GetUserByID(arg0 context.Context, arg1 int) (*models.User, error) {
+func (m *MockUserStorage) GetUserByID(arg0 context.Context, arg1 int64) (*models.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserByID", arg0, arg1)
 	ret0, _ := ret[0].(*models.User)

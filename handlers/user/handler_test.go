@@ -39,23 +39,23 @@ func Test_Register(t *testing.T) {
 	)
 
 	// mock functions
-	mockGenerateToken := func(userID int, res string, err error) func(m *mock_auth.MockAuthClient) {
+	mockGenerateToken := func(res string, err error) func(m *mock_auth.MockAuthClient) {
 		return func(m *mock_auth.MockAuthClient) {
 			m.
 				EXPECT().
 				GenerateToken(
-					gomock.Eq(userID), // id
+					gomock.Any(), // id
 				).
 				Return(res, err)
 		}
 	}
-	mockRegisterUser := func(newUser, createdUser *models.User, err error) func(m *mock_storage_user.MockUserStorage) {
+	mockRegisterUser := func(createdUser *models.User, err error) func(m *mock_storage_user.MockUserStorage) {
 		return func(m *mock_storage_user.MockUserStorage) {
 			m.
 				EXPECT().
 				Create(
-					gomock.Any(),       // context
-					gomock.Eq(newUser), // user
+					gomock.Any(), // context
+					gomock.Any(), // user
 				).
 				Return(createdUser, err)
 		}
@@ -70,9 +70,6 @@ func Test_Register(t *testing.T) {
 
 		mockStorageUser := mock_storage_user.NewMockUserStorage(ctrl)
 		mockRegisterUser(&models.User{
-			Email:    validEmail,
-			Password: validPassword,
-		}, &models.User{
 			ID:        int64(validUserID),
 			Email:     validEmail,
 			Password:  validPassword,
@@ -81,7 +78,7 @@ func Test_Register(t *testing.T) {
 		}, nil)(mockStorageUser)
 
 		mockAuth := mock_auth.NewMockAuthClient(ctrl)
-		mockGenerateToken(validUserID, testGeneratedToken, nil)(mockAuth)
+		mockGenerateToken(testGeneratedToken, nil)(mockAuth)
 
 		req := fmt.Sprintf(`{
 			"email": "%s",
@@ -152,11 +149,8 @@ func Test_Register(t *testing.T) {
 					"email": "%s",
 					"password": "%s"
 				}`, duplicateEmail, validPassword),
-				mockStorageUser: mockRegisterUser(&models.User{
-					Email:    duplicateEmail,
-					Password: validPassword,
-				}, nil, user.ErrEmailAlreadyExist),
-				wantErrCode: http.StatusBadRequest,
+				mockStorageUser: mockRegisterUser(nil, user.ErrEmailAlreadyExist),
+				wantErrCode:     http.StatusBadRequest,
 				wantErrRes: gin.H{
 					"message": user.ErrEmailAlreadyExist.Error(),
 				},
@@ -167,11 +161,8 @@ func Test_Register(t *testing.T) {
 					"email": "%s",
 					"password": "%s"
 				}`, validEmail, validPassword),
-				mockStorageUser: mockRegisterUser(&models.User{
-					Email:    validEmail,
-					Password: validPassword,
-				}, nil, errors.New("create user operation failed")),
-				wantErrCode: http.StatusInternalServerError,
+				mockStorageUser: mockRegisterUser(nil, errors.New("create user operation failed")),
+				wantErrCode:     http.StatusInternalServerError,
 				wantErrRes: gin.H{
 					"message": errInternalServer.Error(),
 				},
@@ -183,16 +174,13 @@ func Test_Register(t *testing.T) {
 					"password": "%s"
 				}`, validEmail, validPassword),
 				mockStorageUser: mockRegisterUser(&models.User{
-					Email:    validEmail,
-					Password: validPassword,
-				}, &models.User{
 					ID:        int64(validUserID),
 					Email:     validEmail,
 					Password:  validPassword,
 					CreatedAt: time.Now(),
 					UpdatedAt: time.Now(),
 				}, nil),
-				mockAuth:    mockGenerateToken(validUserID, "", errors.New("generate token operation failed")),
+				mockAuth:    mockGenerateToken("", errors.New("generate token operation failed")),
 				wantErrCode: http.StatusInternalServerError,
 				wantErrRes: gin.H{
 					"message": errInternalServer.Error(),

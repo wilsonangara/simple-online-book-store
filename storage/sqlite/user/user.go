@@ -22,7 +22,7 @@ var (
 //go:generate mockgen -source=user.go -destination=mock/user.go -package=mock
 type UserStorage interface {
 	// GetUserByID fetches the user in our storage.
-	GetUserByID(context.Context, int) (*models.User, error)
+	GetUserByID(context.Context, int64) (*models.User, error)
 
 	// Create adds a new user to our storage.
 	Create(context.Context, *models.User) (*models.User, error)
@@ -40,7 +40,7 @@ func NewStorage(db *sqlx.DB) *Storage {
 }
 
 // GetUserByID fetches the user in our database
-func (s *Storage) GetUserByID(ctx context.Context, id int) (*models.User, error) {
+func (s *Storage) GetUserByID(ctx context.Context, id int64) (*models.User, error) {
 	if id < 1 {
 		return nil, ErrInvalidUserID
 	}

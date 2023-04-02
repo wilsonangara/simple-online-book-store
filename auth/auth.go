@@ -21,10 +21,10 @@ var (
 //go:generate mockgen -source=auth.go -destination=mock/auth.go -package=mock
 type AuthClient interface {
 	// GenerateToken generates a valid authentication token.
-	GenerateToken(id int) (string, error)
+	GenerateToken(id int64) (string, error)
 
 	// ValidateToken recieves a signed token passed by the client validate it.
-	ValidateToken(signedToken string) (int, error)
+	ValidateToken(signedToken string) (int64, error)
 }
 
 type Client struct {
@@ -43,11 +43,11 @@ func NewClient(secret string) (*Client, error) {
 }
 
 // GenerateToken generates a valid authentication token.
-func (c *Client) GenerateToken(id int) (string, error) {
+func (c *Client) GenerateToken(id int64) (string, error) {
 	if id == 0 {
 		return "", errIDIsRequired
 	}
-	idStr := strconv.Itoa(id)
+	idStr := strconv.FormatInt(id, 10)
 
 	currentTime := time.Now().UTC()
 
@@ -69,7 +69,7 @@ func (c *Client) GenerateToken(id int) (string, error) {
 }
 
 // ValidateToken recieves a signed token passed by the client validate it.
-func (c *Client) ValidateToken(signedToken string) (int, error) {
+func (c *Client) ValidateToken(signedToken string) (int64, error) {
 	token, err := jwt.ParseWithClaims(signedToken,
 		&jwt.StandardClaims{},
 		func(token *jwt.Token) (interface{}, error) {
@@ -98,7 +98,7 @@ func (c *Client) ValidateToken(signedToken string) (int, error) {
 	}
 
 	// converts claims.Subject into id with type int.
-	id, err := strconv.Atoi(claims.Subject)
+	id, err := strconv.ParseInt(claims.Subject, 10, 64)
 	if err != nil {
 		return 0, fmt.Errorf("failed to convert string subject to int id: %w", err)
 	}

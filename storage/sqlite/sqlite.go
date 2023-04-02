@@ -46,6 +46,8 @@ func NewStorage(dbName, migrationDir string) (*Storage, error) {
 		return nil, err
 	}
 
+	db.DB.Exec(`PRAGMA foreign_keys = ON;`)
+
 	teardown := func() {
 		if err := db.Close(); err != nil {
 			log.Fatalf("failed to close database connection: %v", err)

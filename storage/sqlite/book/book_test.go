@@ -41,6 +41,33 @@ func Test_GetBooks(t *testing.T) {
 	}
 }
 
+func Test_GetBooksByIDs(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	ts, teardown := newTestStorage(t)
+	t.Cleanup(teardown)
+
+	// first get all books to obtain its ids.
+	books, err := ts.GetBooks(ctx)
+	if err != nil {
+		t.Fatalf("unexpected error when GetBooks: %v", err)
+	}
+
+	gotBooks, err := ts.GetBooksByIDs(ctx, []int64{books[0].ID})
+	if err != nil {
+		t.Fatalf("GetBooksByIDs(_, _) expected nil error, got = %v", err)
+	}
+
+	if len(gotBooks) != 1 {
+		t.Fatalf("GetBooksByIDs(_, _) error, got = %v, want = %v books", len(gotBooks), 1)
+	}
+	if gotBooks[0].ID != books[0].ID {
+		t.Fatalf("GetBooksByIDs(_, _) error, got = %v, want = %v", gotBooks[0].ID, books[0].ID)
+	}
+}
+
 func genString() string {
 	return uuid.New().String()
 }

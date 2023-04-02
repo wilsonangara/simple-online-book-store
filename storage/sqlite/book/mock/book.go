@@ -49,3 +49,18 @@ func (mr *MockBookStorageMockRecorder) GetBooks(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBooks", reflect.TypeOf((*MockBookStorage)(nil).GetBooks), arg0)
 }
+
+// GetBooksByIDs mocks base method.
+func (m *MockBookStorage) GetBooksByIDs(arg0 context.Context, arg1 []int64) ([]*models.Book, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBooksByIDs", arg0, arg1)
+	ret0, _ := ret[0].([]*models.Book)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetBooksByIDs indicates an expected call of GetBooksByIDs.
+func (mr *MockBookStorageMockRecorder) GetBooksByIDs(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBooksByIDs", reflect.TypeOf((*MockBookStorage)(nil).GetBooksByIDs), arg0, arg1)
+}

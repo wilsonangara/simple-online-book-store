@@ -41,7 +41,7 @@ func Test_Authenticate(t *testing.T) {
 	}
 
 	// mock functions
-	mockValidateToken := func(res int, err error) func(m *mock_auth.MockAuthClient) {
+	mockValidateToken := func(res int64, err error) func(m *mock_auth.MockAuthClient) {
 		return func(m *mock_auth.MockAuthClient) {
 			m.
 				EXPECT().
@@ -67,7 +67,7 @@ func Test_Authenticate(t *testing.T) {
 		t.Parallel()
 
 		mockAuth := mock_auth.NewMockAuthClient(ctrl)
-		mockValidateToken(int(user.ID), nil)(mockAuth)
+		mockValidateToken(user.ID, nil)(mockAuth)
 
 		mockStorageUser := mock_storage_user.NewMockUserStorage(ctrl)
 		mockGetUserByID(user, nil)(mockStorageUser)

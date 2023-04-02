@@ -52,7 +52,7 @@ func Test_GetUserByID(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		t.Parallel()
 
-		user, err := ts.GetUserByID(ctx, int(createdUser.ID))
+		user, err := ts.GetUserByID(ctx, createdUser.ID)
 		if err != nil {
 			t.Fatalf("GetUserByID(_, _) expected nil error, got = %v", err)
 		}

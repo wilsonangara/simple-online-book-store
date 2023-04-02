@@ -40,7 +40,7 @@ func Test_GenerateToken(t *testing.T) {
 
 	var (
 		validSecret = uuid.New().String()
-		validID     = 1
+		validID     = int64(1)
 	)
 
 	t.Run("Success", func(t *testing.T) {
@@ -77,7 +77,7 @@ func Test_ValidateToken(t *testing.T) {
 
 	var (
 		validSecret = "valid-secret"
-		validID     = 1
+		validID     = int64(1)
 	)
 
 	c := &Client{
