@@ -1,4 +1,4 @@
-package storage
+package sqlite
 
 import (
 	"path/filepath"
@@ -10,7 +10,7 @@ import (
 func TestNewStorage(t *testing.T) {
 	t.Parallel()
 
-	migrationDir := filepath.Join(".", "migrations")
+	migrationDir := filepath.Join("..", "migrations")
 
 	t.Run("Success", func(t *testing.T) {
 		t.Parallel()
