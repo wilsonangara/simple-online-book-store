@@ -71,7 +71,7 @@ func (m *Middleware) Authenticate() gin.HandlerFunc {
 		}
 
 		// fetch user with the given id.
-		user, err := m.userStorage.GetUserByID(id)
+		user, err := m.userStorage.GetUserByID(ctx, id)
 		if err != nil {
 			log.Printf("failed when fetching user: %v", err)
 			if errors.Is(err, sqlite.ErrNotFound) {

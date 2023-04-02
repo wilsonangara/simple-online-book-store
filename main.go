@@ -7,10 +7,16 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/kenshaw/envcfg"
+
+	"github.com/wilsonangara/simple-online-book-store/auth"
+	"github.com/wilsonangara/simple-online-book-store/handlers/user"
+	"github.com/wilsonangara/simple-online-book-store/storage/sqlite"
+	user_storage "github.com/wilsonangara/simple-online-book-store/storage/sqlite/user"
 )
 
 var config *envcfg.Envcfg
@@ -78,6 +84,33 @@ func setupHandlers() http.Handler {
 			"message": "endpoint not found",
 		})
 	})
+
+	authClient, err := auth.NewClient(config.GetString("jwt.secret"))
+	if err != nil {
+		log.Fatalf("failed to initialize auth client: %v", err)
+	}
+
+	wd, err := os.Getwd()
+	if err != nil {
+		log.Fatalf("failed to get working directory: %v", err)
+	}
+	dbName := filepath.Join(wd, "storage", "sqlite", "databases",
+		config.GetString("db.name"),
+	)
+	pathToMigrations := filepath.Join(wd, "storage", "migrations")
+
+	// storage
+	storage, err := sqlite.NewStorage(dbName, pathToMigrations)
+	if err != nil {
+		log.Fatalf("failed to initialized storage: %v", err)
+	}
+
+	userStorage := user_storage.NewStorage(storage.Database())
+
+	v1 := r.Group("/v1")
+
+	userHandler := user.NewHandler(authClient, userStorage)
+	userHandler.AddUserRoutes(v1)
 
 	return r
 }

@@ -56,6 +56,7 @@ func Test_Authenticate(t *testing.T) {
 			m.
 				EXPECT().
 				GetUserByID(
+					gomock.Any(), // context
 					gomock.Any(), // user id
 				).
 				Return(res, err)

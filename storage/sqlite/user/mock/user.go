@@ -5,6 +5,7 @@
 package mock
 
 import (
+	context "context"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -34,17 +35,32 @@ func (m *MockUserStorage) EXPECT() *MockUserStorageMockRecorder {
 	return m.recorder
 }
 
-// GetUserByID mocks base method.
-func (m *MockUserStorage) GetUserByID(id int) (*models.User, error) {
+// Create mocks base method.
+func (m *MockUserStorage) Create(arg0 context.Context, arg1 *models.User) (*models.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserByID", id)
+	ret := m.ctrl.Call(m, "Create", arg0, arg1)
+	ret0, _ := ret[0].(*models.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockUserStorageMockRecorder) Create(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUserStorage)(nil).Create), arg0, arg1)
+}
+
+// GetUserByID mocks base method.
+func (m *MockUserStorage) GetUserByID(arg0 context.Context, arg1 int) (*models.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserByID", arg0, arg1)
 	ret0, _ := ret[0].(*models.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetUserByID indicates an expected call of GetUserByID.
-func (mr *MockUserStorageMockRecorder) GetUserByID(id interface{}) *gomock.Call {
+func (mr *MockUserStorageMockRecorder) GetUserByID(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByID", reflect.TypeOf((*MockUserStorage)(nil).GetUserByID), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByID", reflect.TypeOf((*MockUserStorage)(nil).GetUserByID), arg0, arg1)
 }

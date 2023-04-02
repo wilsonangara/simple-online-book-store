@@ -1,44 +1,44 @@
 package sqlite
 
 import (
-	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
 
+	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/pressly/goose"
 )
 
 const driver = "sqlite3"
 
-// Storage provides a wrapper around an SQLite database.
-type Storage struct {
-	db       *sql.DB
-	path     string
-	teardown func()
+var errDbNameIsRequired = errors.New("db name is required")
+
+func init() {
+	goose.SetDialect(driver)
 }
 
-func (s *Storage) Database() *sql.DB {
+// Storage provides a wrapper around an SQLite database.
+type Storage struct {
+	db       *sqlx.DB
+	path     string
+	Teardown func()
+}
+
+func (s *Storage) Database() *sqlx.DB {
 	return s.db
 }
 
 // NewStorage creates a connection to our database with the given
 // dbName and return a storage with the connected db.
 func NewStorage(dbName, migrationDir string) (*Storage, error) {
-	dirPath, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
+	if dbName == "" {
+		return nil, errDbNameIsRequired
 	}
+	dbName = dbName + ".db"
 
-	if dbName != "" {
-		dbName = dbName + ".db"
-	}
-
-	dbPath := filepath.Join(dirPath, "databases", dbName)
-
-	db, err := sql.Open(driver, dbPath)
+	db, err := sqlx.Connect(driver, dbName)
 	if err != nil {
 		return nil, err
 	}
@@ -50,18 +50,14 @@ func NewStorage(dbName, migrationDir string) (*Storage, error) {
 		if err := db.Close(); err != nil {
 			log.Fatalf("failed to close database connection: %v", err)
 		}
-		if err := os.Remove(dbPath); err != nil {
+		if err := os.Remove(dbName); err != nil {
 			log.Fatalf("failed to teardown database: %v", err)
 		}
 	}
 
 	// execute migrations when migrationDir is provided.
 	if migrationDir != "" {
-		if err := goose.SetDialect(driver); err != nil {
-			teardown()
-			return nil, fmt.Errorf("failed to set goose dialect: %w", err)
-		}
-		if err := goose.Up(db, migrationDir); err != nil {
+		if err := goose.Up(db.DB, migrationDir); err != nil {
 			teardown()
 			return nil, fmt.Errorf("failed to run database migrations: %w", err)
 		}
@@ -69,6 +65,6 @@ func NewStorage(dbName, migrationDir string) (*Storage, error) {
 
 	return &Storage{
 		db:       db,
-		teardown: teardown,
+		Teardown: teardown,
 	}, nil
 }

@@ -1,6 +1,7 @@
 package sqlite
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -12,16 +13,22 @@ func TestNewStorage(t *testing.T) {
 
 	migrationDir := filepath.Join("..", "migrations")
 
+	dbPath, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("unexpected error when getting current path: %v", err)
+	}
+	pathToDB := filepath.Join(dbPath, "databases")
+
 	t.Run("Success", func(t *testing.T) {
 		t.Parallel()
 
-		testDBName := uuid.New()
-		storage, err := NewStorage(testDBName.String(), migrationDir)
+		testDBName := filepath.Join(pathToDB, uuid.New().String())
+		storage, err := NewStorage(testDBName, migrationDir)
 		if err != nil {
 			t.Fatalf("NewStorage(_), error create new storage: %v", err)
 		}
 
-		storage.teardown()
+		storage.Teardown()
 	})
 
 	t.Run("Failed", func(t *testing.T) {
