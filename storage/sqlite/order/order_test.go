@@ -163,6 +163,67 @@ func Test_Create(t *testing.T) {
 	})
 }
 
+func Test_GetOrderHistory(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	t.Run("Success", func(t *testing.T) {
+		t.Parallel()
+
+		ts, teardown := newTestStorage(t)
+		t.Cleanup(teardown)
+
+		// create dummy user
+		testUser, err := testCreateUser(t, ts.db)
+		if err != nil {
+			t.Fatalf("unexpected error when creating dummy user: %v", err)
+		}
+
+		books, err := testGetBooks(t, ts.db)
+		if err != nil || len(books) < 1 {
+			t.Fatalf("unexpected error when getting books: %v", err)
+		}
+		book := books[0]
+
+		bookPriceFloat, err := strconv.ParseFloat(book.Price, 64)
+		if err != nil {
+			t.Fatalf("unexpected error when converting price to float64: %v", err)
+		}
+
+		validQuantity := int64(1)
+		totalBookPrice := fmt.Sprintf("%.2f", float64(validQuantity)*bookPriceFloat)
+
+		testOrder := &models.Order{
+			UserID: testUser.ID,
+			Total:  totalBookPrice,
+		}
+		testItems := []*models.OrderItem{
+			{
+				BookID:   book.ID,
+				Price:    book.Price,
+				Quantity: validQuantity,
+			},
+		}
+
+		if err := ts.Create(ctx, testOrder, testItems); err != nil {
+			t.Fatalf("unexpected error when creating order: %v", err)
+		}
+
+		orders, err := ts.GetOrderHistory(ctx, testUser.ID)
+		if err != nil {
+			t.Fatalf("GetOrderHistory(_, _) expected nil error, got = %v", err)
+		}
+
+		if len(orders) != 1 {
+			t.Fatalf("GetOrderHistory(_, _) error, got = %v, want = %v", len(orders), 1)
+		}
+		if len(orders[0].Items) != 1 {
+			t.Fatalf("GetOrderHistory(_, _) error, got = %v, want = %v", len(orders[0].Items), 1)
+		}
+	})
+}
+
 func testCreateUser(t *testing.T, db *sqlx.DB) (*models.User, error) {
 	t.Helper()
 

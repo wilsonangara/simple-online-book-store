@@ -70,6 +70,7 @@ func (h *Handler) Order(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"messsge": errInternalServer.Error(),
 		})
+		return
 	}
 
 	r := &OrderRequest{}
@@ -165,6 +166,47 @@ func (h *Handler) Order(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{})
+}
+
+// GetOrderHistory lets a user to fetch all of their order histories.
+func (h *Handler) GetOrderHistory(c *gin.Context) {
+	userID, err := getUserIDFromContext(c)
+	if err != nil {
+		log.Printf("failed to bind json: %v", err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"message": errInternalServer.Error(),
+		})
+		return
+	}
+
+	// check if user exists
+	_, err = h.userStorage.GetUserByID(c.Request.Context(), userID)
+	if err != nil {
+		if errors.Is(err, sqlite.ErrNotFound) {
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
+				"message": err.Error(),
+			})
+			return
+		}
+		log.Printf("failed to get user by id: %v", err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"messsge": errInternalServer.Error(),
+		})
+		return
+	}
+
+	orders, err := h.orderStorage.GetOrderHistory(c.Request.Context(), userID)
+	if err != nil {
+		log.Printf("failed to get order history for user: %d, with error: %v", userID, err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"message": errInternalServer.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"orders": orders,
+	})
 }
 
 // getUserIDFromContext get user information passed in context from

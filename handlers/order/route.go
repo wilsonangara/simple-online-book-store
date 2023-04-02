@@ -1,9 +1,14 @@
 package order
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
 
-func (h *Handler) AddOrderRoutes(rg *gin.RouterGroup) {
+	"github.com/wilsonangara/simple-online-book-store/middleware"
+)
+
+func (h *Handler) AddOrderRoutes(rg *gin.RouterGroup, m *middleware.Middleware) {
 	r := rg.Group("/orders")
 
-	r.POST("/", h.Order)
+	r.GET("/history", m.Authenticate(), h.GetOrderHistory)
+	r.POST("/", m.Authenticate(), h.Order)
 }

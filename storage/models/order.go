@@ -19,3 +19,27 @@ type OrderItem struct {
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 }
+
+type OrderHistoryData struct {
+	ID          int64  `db:"id"`
+	Total       string `db:"total"`
+	Price       string `db:"price"`
+	Quantity    int64  `db:"quantity"`
+	Title       string `db:"title"`
+	Author      string `db:"author"`
+	Description string `db:"description"`
+}
+
+type OrderHistoryItem struct {
+	Price       string
+	Quantity    int64
+	Title       string
+	Author      string
+	Description string
+}
+
+type OrderHistory struct {
+	ID    int64
+	Total string
+	Items []*OrderHistoryItem
+}

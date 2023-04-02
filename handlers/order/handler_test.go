@@ -276,6 +276,180 @@ func Test_Order(t *testing.T) {
 	})
 }
 
+func Test_GetOrderHistory(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+
+	var (
+		validMethod   = http.MethodGet
+		validEndpoint = "http://localhost:8443/v1/order/history"
+
+		validUserID         = int64(1)
+		validOrderHistoryID = int64(1)
+	)
+
+	// mock functions
+	mockGetUserByID := func(res *models.User, err error) func(m *mock_storage_user.MockUserStorage) {
+		return func(m *mock_storage_user.MockUserStorage) {
+			m.
+				EXPECT().
+				GetUserByID(
+					gomock.Any(), // context
+					gomock.Any(), // user id
+				).
+				Return(res, err)
+		}
+	}
+
+	mockGetOrderHistory := func(orders []*models.OrderHistory, err error) func(m *mock_storage_order.MockOrderStorage) {
+		return func(m *mock_storage_order.MockOrderStorage) {
+			m.
+				EXPECT().
+				GetOrderHistory(
+					gomock.Any(), // context
+					gomock.Any(), // user id
+				).
+				Return(orders, err)
+		}
+	}
+
+	validUser := &models.User{
+		ID:       validUserID,
+		Email:    genString(),
+		Password: genString(),
+	}
+
+	validOrderHistory := []*models.OrderHistory{
+		{
+			ID:    validOrderHistoryID,
+			Total: "10.00",
+			Items: []*models.OrderHistoryItem{
+				{
+					Price:       "10.00",
+					Quantity:    int64(1),
+					Title:       genString(),
+					Author:      genString(),
+					Description: genString(),
+				},
+			},
+		},
+	}
+
+	t.Run("Success", func(t *testing.T) {
+		t.Parallel()
+
+		mockStorageOrder := mock_storage_order.NewMockOrderStorage(ctrl)
+		mockGetOrderHistory(validOrderHistory, nil)(mockStorageOrder)
+
+		mockStorageUser := mock_storage_user.NewMockUserStorage(ctrl)
+		mockGetUserByID(validUser, nil)(mockStorageUser)
+
+		w := httptest.NewRecorder()
+		h := &Handler{
+			orderStorage: mockStorageOrder,
+			userStorage:  mockStorageUser,
+		}
+
+		r, err := http.NewRequest(validMethod, validEndpoint, bytes.NewBuffer([]byte{}))
+		if err != nil {
+			t.Fatalf("unexpected error when creating http request: %v", err)
+		}
+
+		testCtx, _ := gin.CreateTestContext(w)
+		testCtx.Request = r
+
+		testCtx.Set("user", validUser)
+
+		h.GetOrderHistory(testCtx)
+
+		res := w.Result()
+		if res.StatusCode != http.StatusOK {
+			t.Fatalf("GetOrderHistory() error, got status code = %v, want = %v", res.StatusCode, http.StatusOK)
+		}
+	})
+
+	t.Run("Failed_UserNotFound", func(t *testing.T) {
+		t.Parallel()
+
+		mockStorageUser := mock_storage_user.NewMockUserStorage(ctrl)
+		mockGetUserByID(nil, sqlite.ErrNotFound)(mockStorageUser)
+
+		w := httptest.NewRecorder()
+		h := &Handler{
+			userStorage: mockStorageUser,
+		}
+
+		r, err := http.NewRequest(validMethod, validEndpoint, bytes.NewBuffer([]byte{}))
+		if err != nil {
+			t.Fatalf("unexpected error when creating http request: %v", err)
+		}
+
+		testCtx, _ := gin.CreateTestContext(w)
+		testCtx.Request = r
+
+		testCtx.Set("user", validUser)
+
+		h.GetOrderHistory(testCtx)
+
+		res := w.Result()
+		if res.StatusCode != http.StatusNotFound {
+			t.Fatalf("GetOrderHistory() error, got status code = %v, want = %v", res.StatusCode, http.StatusNotFound)
+		}
+
+		wantErr := gin.H{
+			"message": sqlite.ErrNotFound.Error(),
+		}
+
+		resBody := getResponseBody(t, w.Body.Bytes())
+		if diff := cmp.Diff(wantErr, resBody); diff != "" {
+			t.Fatalf("GetOrderHistory() mismatch (-want+got):\n%s", diff)
+		}
+	})
+
+	t.Run("Failed_GetOrderHistoryDatabaseOperationFailed", func(t *testing.T) {
+		t.Parallel()
+
+		mockStorageOrder := mock_storage_order.NewMockOrderStorage(ctrl)
+		mockGetOrderHistory(nil, errors.New("error when executing get order history operation"))(mockStorageOrder)
+
+		mockStorageUser := mock_storage_user.NewMockUserStorage(ctrl)
+		mockGetUserByID(validUser, nil)(mockStorageUser)
+
+		w := httptest.NewRecorder()
+		h := &Handler{
+			orderStorage: mockStorageOrder,
+			userStorage:  mockStorageUser,
+		}
+
+		r, err := http.NewRequest(validMethod, validEndpoint, bytes.NewBuffer([]byte{}))
+		if err != nil {
+			t.Fatalf("unexpected error when creating http request: %v", err)
+		}
+
+		testCtx, _ := gin.CreateTestContext(w)
+		testCtx.Request = r
+
+		testCtx.Set("user", validUser)
+
+		h.GetOrderHistory(testCtx)
+
+		res := w.Result()
+		if res.StatusCode != http.StatusInternalServerError {
+			t.Fatalf("GetOrderHistory() error, got status code = %v, want = %v", res.StatusCode, http.StatusInternalServerError)
+		}
+
+		wantErr := gin.H{
+			"message": errInternalServer.Error(),
+		}
+
+		resBody := getResponseBody(t, w.Body.Bytes())
+		if diff := cmp.Diff(wantErr, resBody); diff != "" {
+			t.Fatalf("GetOrderHistory() mismatch (-want+got):\n%s", diff)
+		}
+	})
+}
+
 // getResponseBody unmarshals response body to type gin.H map[string]any.
 func getResponseBody(t testing.TB, data []byte) gin.H {
 	t.Helper()

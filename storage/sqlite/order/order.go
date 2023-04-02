@@ -23,6 +23,9 @@ type OrderStorage interface {
 	// Create adds a new order for a user and allow them to order multiple
 	// books.
 	Create(context.Context, *models.Order, []*models.OrderItem) error
+
+	// GetOrderHistory fetches all the orders of a user.
+	GetOrderHistory(context.Context, int64) ([]*models.OrderHistory, error)
 }
 
 type Storage struct {
@@ -117,4 +120,83 @@ func (s *Storage) Create(ctx context.Context, order *models.Order, items []*mode
 	tx.Commit()
 
 	return nil
+}
+
+// GetOrderHistory fetches all the orders of a user.
+func (s *Storage) GetOrderHistory(ctx context.Context, userID int64) ([]*models.OrderHistory, error) {
+	query := `
+SELECT 
+	o.id,
+	o.total,
+	oi.price,
+	oi.quantity,
+	b.title,
+	b.author,
+	b.description
+FROM orders o
+JOIN order_items oi
+	ON o.id = oi.order_id
+JOIN books b
+	ON oi.book_id = b.id
+WHERE user_id = :user_id;
+`
+
+	stmt, err := s.db.PrepareNamed(query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to prepare GetOrderHistory statement: %w", err)
+	}
+	defer stmt.Close()
+
+	arg := map[string]interface{}{
+		"user_id": userID,
+	}
+
+	rows, err := stmt.Queryx(arg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query from orders: %v", err)
+	}
+	defer rows.Close()
+
+	// iterate through each row and save it as order model.
+	ordersMap := map[int64]*models.OrderHistory{}
+	for rows.Next() {
+		// order := &models.Order{}
+		var order models.OrderHistoryData
+
+		if err := rows.StructScan(&order); err != nil {
+			return nil, fmt.Errorf("failed when scanning through rows: %v", err)
+		}
+
+		_, ok := ordersMap[order.ID]
+		if !ok {
+			ordersMap[order.ID] = &models.OrderHistory{
+				ID:    order.ID,
+				Total: order.Total,
+				Items: []*models.OrderHistoryItem{
+					{
+						Price:       order.Price,
+						Quantity:    order.Quantity,
+						Title:       order.Title,
+						Author:      order.Author,
+						Description: order.Description,
+					},
+				},
+			}
+		} else {
+			ordersMap[order.ID].Items = append(ordersMap[order.ID].Items, &models.OrderHistoryItem{
+				Price:       order.Price,
+				Quantity:    order.Quantity,
+				Title:       order.Title,
+				Author:      order.Author,
+				Description: order.Description,
+			})
+		}
+	}
+
+	orders := []*models.OrderHistory{}
+	for _, v := range ordersMap {
+		orders = append(orders, v)
+	}
+
+	return orders, nil
 }

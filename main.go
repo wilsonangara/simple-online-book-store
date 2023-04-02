@@ -17,6 +17,7 @@ import (
 	"github.com/wilsonangara/simple-online-book-store/handlers/book"
 	"github.com/wilsonangara/simple-online-book-store/handlers/order"
 	"github.com/wilsonangara/simple-online-book-store/handlers/user"
+	"github.com/wilsonangara/simple-online-book-store/middleware"
 	"github.com/wilsonangara/simple-online-book-store/storage/sqlite"
 	book_storage "github.com/wilsonangara/simple-online-book-store/storage/sqlite/book"
 	order_storage "github.com/wilsonangara/simple-online-book-store/storage/sqlite/order"
@@ -113,6 +114,8 @@ func setupHandlers() http.Handler {
 	bookStorage := book_storage.NewStorage(storage.Database())
 	orderStorage := order_storage.NewStorage(storage.Database())
 
+	middleware := middleware.NewMiddleware(authClient, userStorage)
+
 	v1 := r.Group("/v1")
 
 	userHandler := user.NewHandler(authClient, userStorage)
@@ -122,7 +125,7 @@ func setupHandlers() http.Handler {
 	bookHandler.AddBookRoutes(v1)
 
 	orderHandler := order.NewHandler(orderStorage, bookStorage)
-	orderHandler.AddOrderRoutes(v1)
+	orderHandler.AddOrderRoutes(v1, middleware)
 
 	return r
 }
