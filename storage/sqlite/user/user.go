@@ -67,6 +67,7 @@ WHERE id = :id
 		}
 		return nil, fmt.Errorf("failed to perform GetUserByID storage operation: %w", err)
 	}
+
 	return &user, nil
 }
 

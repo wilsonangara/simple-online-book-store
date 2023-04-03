@@ -30,10 +30,11 @@ type Handler struct {
 }
 
 // NewHandler returns a wrapper for order handler.
-func NewHandler(orderStorage order.OrderStorage, bookStorage book.BookStorage) *Handler {
+func NewHandler(orderStorage order.OrderStorage, bookStorage book.BookStorage, userStorage user.UserStorage) *Handler {
 	return &Handler{
 		orderStorage: orderStorage,
 		bookStorage:  bookStorage,
+		userStorage:  userStorage,
 	}
 }
 
@@ -50,7 +51,7 @@ type OrderRequest struct {
 func (h *Handler) Order(c *gin.Context) {
 	userID, err := getUserIDFromContext(c)
 	if err != nil {
-		log.Printf("failed to bind json: %v", err)
+		log.Printf("failed to get user id from context: %v", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"message": errInternalServer.Error(),
 		})

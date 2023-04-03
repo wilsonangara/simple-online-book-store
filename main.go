@@ -124,7 +124,7 @@ func setupHandlers() http.Handler {
 	bookHandler := book.NewHandler(bookStorage)
 	bookHandler.AddBookRoutes(v1)
 
-	orderHandler := order.NewHandler(orderStorage, bookStorage)
+	orderHandler := order.NewHandler(orderStorage, bookStorage, userStorage)
 	orderHandler.AddOrderRoutes(v1, middleware)
 
 	return r
