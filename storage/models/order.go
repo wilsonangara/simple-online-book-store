@@ -31,15 +31,15 @@ type OrderHistoryData struct {
 }
 
 type OrderHistoryItem struct {
-	Price       string
-	Quantity    int64
-	Title       string
-	Author      string
-	Description string
+	Price       string `json:"price"`
+	Quantity    int64  `json:"quantity"`
+	Title       string `json:"title"`
+	Author      string `json:"author"`
+	Description string `json:"description"`
 }
 
 type OrderHistory struct {
-	ID    int64
-	Total string
-	Items []*OrderHistoryItem
+	ID    int64               `json:"id"`
+	Total string              `json:"total"`
+	Items []*OrderHistoryItem `json:"items"`
 }
