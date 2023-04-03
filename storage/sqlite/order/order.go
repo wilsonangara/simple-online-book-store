@@ -160,7 +160,6 @@ WHERE user_id = :user_id;
 	// iterate through each row and save it as order model.
 	ordersMap := map[int64]*models.OrderHistory{}
 	for rows.Next() {
-		// order := &models.Order{}
 		var order models.OrderHistoryData
 
 		if err := rows.StructScan(&order); err != nil {

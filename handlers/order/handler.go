@@ -137,7 +137,7 @@ func (h *Handler) Order(c *gin.Context) {
 				})
 				return
 			}
-			totalPrice = totalPrice + float64Price
+			totalPrice = totalPrice + (float64Price * float64(book.Quantity))
 
 			orderItems = append(orderItems, &models.OrderItem{
 				BookID:   book.BookID,
