@@ -5,8 +5,8 @@ CREATE TABLE IF NOT EXISTS books (
         author TEXT NOT NULL,
         price TEXT NOT NULL,
         description TEXT,
-        created_at DATETIME NOT NULL DEFAULT (DATETIME('now', 'utc')),
-        updated_at DATETIME NOT NULL DEFAULT (DATETIME('now', 'utc'))
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- +goose StatementBegin

@@ -8,6 +8,6 @@ type Book struct {
 	Author      string    `db:"author" json:"author"`
 	Price       string    `db:"price" json:"price"`
 	Description string    `db:"description" json:"description"`
-	CreatedAt   time.Time `db:"created_at" json:"created_at"`
-	UpdatedAt   time.Time `db:"updated_at" json:"updated_at"`
+	CreatedAt   time.Time `db:"created_at" json:"-"`
+	UpdatedAt   time.Time `db:"updated_at" json:"-"`
 }

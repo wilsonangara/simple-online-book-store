@@ -5,8 +5,8 @@ CREATE TABLE IF NOT EXISTS order_items (
         book_id INTEGER NOT NULL,
         price TEXT NOT NULL,
         quantity INTEGER NOT NULL,
-        created_at DATETIME NOT NULL DEFAULT (DATETIME('now', 'utc')),
-        updated_at DATETIME NOT NULL DEFAULT (DATETIME('now', 'utc')),
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (order_id) REFERENCES orders(id),
         FOREIGN KEY (book_id) REFERENCES books(id)
 )
